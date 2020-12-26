@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session,redirect
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user, fresh_login_required
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import timedelta
@@ -17,6 +17,8 @@ login_manager = LoginManager(app)
 #below code used to redirect client to login page if it is trying to acces authorized page without login
 login_manager.login_view = 'login'
 login_manager.login_message = "you cant acces that page you need to login first"
+login_manager.refresh_view = 'login'
+login_manager.needs_refresh_message = " You need to login again"
 db = SQLAlchemy(app)
 
 
@@ -59,6 +61,11 @@ def home():
 def logout():
     logout_user()
     return '<h1>You are now logged out</h1>'
+
+@app.route('/fresh')
+@fresh_login_required
+def fresh():
+    return '<h1>You have a fresh session</h1>'
 
 if __name__ == "__main__":
     app.run(debug=True)
