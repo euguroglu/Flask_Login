@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, request
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -23,11 +23,16 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 #or return User.query.filter_by(id=int(user_d))
 
-@app.route('/login')
+@app.route('/login',methods=['GET','POST'])
 def login():
-    user = User.query.filter_by(username='enes').first()
-    login_user(user)
-    return '<h1>Logged in</h1>'
+    if request.method == 'POST':
+        username = request.form['username']
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return "user does not exist"
+        login_user(user)
+        return '<h1>You are now logged in</h1>'
+    return render_template('login.html')
 
 @app.route('/home')
 @login_required
