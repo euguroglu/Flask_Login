@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session,redirect
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 import os
+from datetime import timedelta
 
 
 app = Flask(__name__)
@@ -9,9 +10,15 @@ app.config['SECRET_KEY'] = 'Secret'
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir,'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['USE_SESSION_FOR_NEXT'] = True
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(seconds=20)
 
 login_manager = LoginManager(app)
+#below code used to redirect client to login page if it is trying to acces authorized page without login
+login_manager.login_view = 'login'
+login_manager.login_message = "you cant acces that page you need to login first"
 db = SQLAlchemy(app)
+
 
 
 class User(UserMixin,db.Model):
@@ -30,8 +37,16 @@ def login():
         user = User.query.filter_by(username=username).first()
         if not user:
             return "user does not exist"
-        login_user(user)
+        login_user(user,remember=True)
+
+        if 'next' in session:
+            next = session['next']
+            if next is not None:
+                return redirect(next)
+
         return '<h1>You are now logged in</h1>'
+
+    session['next'] = request.args.get('next')
     return render_template('login.html')
 
 @app.route('/home')
