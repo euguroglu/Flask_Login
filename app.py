@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -33,6 +33,12 @@ def login():
 @login_required
 def home():
     return '<h1>You are in the protected area, {}</h1>'.format(current_user.username)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return '<h1>You are now logged out</h1>'
 
 if __name__ == "__main__":
     app.run(debug=True)
